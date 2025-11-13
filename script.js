@@ -1,7 +1,7 @@
-// --- ユーティリティ関数 ---
+// --- ユーティリティ関数 (変更なし) ---
 
 /**
- * 住所文字列から数値化された地番を抽出する (変更なし)
+ * 住所文字列から数値化された地番を抽出する
  */
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
@@ -22,7 +22,7 @@ function parseToNumeric(houseNumberStr) {
 }
 
 /**
- * 完全な住所文字列から町名と地番を抽出する (変更なし)
+ * 完全な住所文字列から町名と地番を抽出する
  */
 function parseAddress(fullAddress) {
     const parts = fullAddress.split('天草市');
@@ -46,35 +46,31 @@ function parseAddress(fullAddress) {
 }
 
 
-// --- 旅費地点検索ロジック (町名照合を強化) ---
+// --- 旅費地点検索ロジック (コアロジック) ---
 
 /**
  * 町名と地番から旅費地点を特定する
  */
 function getTravelPoint(townName, numericHouseNumber) {
     try {
-        // 施設検索からの町名を正規化（例: '五和町御領' -> '五和町御領'）
-        const normalizedTownName = townName.trim();
-        
-        // 1. データ内で町名を探す (厳格な照合)
-        let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
-            // 町名が完全に一致するか (例: '御所浦町御所浦' vs '御所浦町御所浦')
-            if (entry.town === normalizedTownName) return true;
-            
-            // 入力町名がデータキーの末尾と一致するか (例: '小宮地' vs '新和町小宮地')
-            if (entry.town.endsWith(normalizedTownName) && entry.town.includes('町')) return true;
+        const cleanInputTown = townName.replace(/町$/, '').trim();
 
-            // データキーが入力町名の末尾と一致するか (例: '東浜町' vs '東町') -> 今回は不使用、単純化
-            
+        // 1. データ内で町名を探す (厳格な町名照合ロジック)
+        let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+            // 優先度1: 完全一致
+            if (entry.town === townName) return true;
+            // 優先度2: クリーン名でのマッチ (例: 五和町御領 vs 御領)
+            if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
+            // 優先度3: 入力町名がデータキーに含まれる (最も柔軟な部分一致)
+            if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
             return false;
         });
 
-        // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
+        // 2. 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
         if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
             const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
             if (catchAllEntry) {
-                // 町名エントリが見つからなかった場合、catch-allエントリを使用
-                targetEntry = catchAllEntry; 
+                targetEntry = catchAllEntry;
             }
         }
         
@@ -82,7 +78,7 @@ function getTravelPoint(townName, numericHouseNumber) {
             return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
         }
 
-        // 2. 範囲を順番にチェック (境界値判定のロジックは維持)
+        // 3. 範囲を順番にチェック (地番境界値の厳格な適用)
         for (let i = 0; i < targetEntry.ranges.length; i++) {
             const range = targetEntry.ranges[i];
             const rangeStart = range.start;
@@ -112,7 +108,6 @@ function getTravelPoint(townName, numericHouseNumber) {
         return "エラー: 入力された地番の範囲を特定できませんでした。";
         
     } catch (e) {
-        // 処理中に予期せぬエラーが発生した場合、エラーを報告
         console.error("検索処理中に致命的なエラーが発生しました:", e);
         return "エラー: 検索ロジック処理中に例外が発生しました。";
     }
@@ -180,7 +175,6 @@ function searchByFacility() {
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
 
-    // 施設住所から抽出した町名をそのまま渡すことで、getTravelPoint内で厳格な照合を試みる
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
