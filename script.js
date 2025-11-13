@@ -1,14 +1,11 @@
-// --- ユーティリティ関数 ---
+// --- ユーティリティ関数 (変更なし) ---
 
 /**
  * 住所文字列から数値化された地番を抽出する
- * @param {string} houseNumberStr - 地番文字列
- * @returns {number} - 数値化された地番
  */
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
     
-    // "番地"、"番"、"号"などを取り除く
     let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
     
     // 全角数字を半角に変換
@@ -31,8 +28,6 @@ function parseToNumeric(houseNumberStr) {
 
 /**
  * 完全な住所文字列から町名と地番を抽出する
- * @param {string} fullAddress - 完全な住所文字列 (例: "天草市浄南町４番１５号")
- * @returns {{townName: string, houseNumber: string}}
  */
 function parseAddress(fullAddress) {
     const parts = fullAddress.split('天草市');
@@ -56,71 +51,74 @@ function parseAddress(fullAddress) {
 }
 
 
-// --- 旅費地点検索ロジック ---
+// --- 旅費地点検索ロジック (エラーハンドリングを強化) ---
 
 /**
  * 町名と地番から旅費地点を特定する
- * @param {string} townName - 町名 (例: "御所浦町御所浦")
- * @param {number} numericHouseNumber - 数値地番 (例: 2895.14)
- * @returns {string} - 旅費地点またはエラーメッセージ
  */
 function getTravelPoint(townName, numericHouseNumber) {
-    const cleanInputTown = townName.replace(/町$/, '').trim();
+    try {
+        const cleanInputTown = townName.replace(/町$/, '').trim();
 
-    // 1. データ内で町名を探す (柔軟な照合)
-    let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
-        if (entry.town === townName) return true;
-        if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
-        if (townName.includes(entry.town) && entry.town.length > 2) return true;
-        if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
-        return false;
-    });
+        // 1. データ内で町名を探す (柔軟な照合)
+        let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+            if (entry.town === townName) return true;
+            if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
+            if (townName.includes(entry.town) && entry.town.length > 2) return true;
+            if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
+            return false;
+        });
 
-    // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
-    // ターゲットの東町, 浄南町, 太田町に該当しない場合、本渡のキャッチオールを適用
-    if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
-        const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
-        if (catchAllEntry) {
-            targetEntry = catchAllEntry;
+        // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
+        if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
+            const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
+            if (catchAllEntry) {
+                targetEntry = catchAllEntry;
+            }
         }
-    }
-    
-    if (!targetEntry) {
-        return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
-    }
-
-    // 2. 範囲を順番にチェック
-    for (let i = 0; i < targetEntry.ranges.length; i++) {
-        const range = targetEntry.ranges[i];
-        const rangeStart = range.start;
-        const rangeEnd = range.end;
         
-        // 境界値の優先ルールをチェック
-        if (numericHouseNumber === rangeEnd) {
-             const nextRange = targetEntry.ranges[i + 1];
-             
-             // 境界値が次の範囲の開始地番でもある場合、次の範囲（優先される方）に処理を移す
-             if (nextRange && numericHouseNumber === nextRange.start) {
-                 continue; 
-             }
+        if (!targetEntry) {
+            return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
         }
 
-        // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
-        if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
-            return range.location;
-        }
+        // 2. 範囲を順番にチェック
+        for (let i = 0; i < targetEntry.ranges.length; i++) {
+            const range = targetEntry.ranges[i];
+            const rangeStart = range.start;
+            const rangeEnd = range.end;
+            
+            // 境界値の優先ルールをチェック
+            if (numericHouseNumber === rangeEnd) {
+                 const nextRange = targetEntry.ranges[i + 1];
+                 
+                 // 境界値が次の範囲の開始地番でもある場合、次の範囲（優先される方）に処理を移す
+                 if (nextRange && numericHouseNumber === nextRange.start) {
+                     continue; 
+                 }
+            }
 
-        // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
-        if (numericHouseNumber === rangeEnd) {
-             return range.location;
+            // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
+            if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
+                return range.location;
+            }
+
+            // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
+            if (numericHouseNumber === rangeEnd) {
+                 return range.location;
+            }
         }
+        
+        return "エラー: 入力された地番の範囲を特定できませんでした。";
+        
+    } catch (e) {
+        // 例外が発生した場合、デバッグ情報をコンソールに出力し、ユーザーにエラーを報告
+        console.error("検索処理中に致命的なエラーが発生しました:", e);
+        return "エラー: 検索ロジック処理中に例外が発生しました。";
     }
-    
-    return "エラー: 入力された地番の範囲を特定できませんでした。";
 }
 
 
-// --- UI操作関数 ---
+// --- UI操作関数 (変更なし) ---
 
 function displayResult(input, point, isAmbiguous) {
     const resultArea = document.getElementById('result-area');
@@ -181,7 +179,7 @@ function searchByFacility() {
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
 
-    const result = getTravelPoint(addressParts.townName, numericHouseNumber);
+    const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
     const isAmbiguous = result.includes("or") || result.includes("OR");
@@ -189,7 +187,7 @@ function searchByFacility() {
     displayResult(inputStr, result, isAmbiguous);
 }
 
-// --- 初期化 ---
+// --- 初期化 (変更なし) ---
 
 function getFacilityType(name) {
     if (name.includes('市役所') || name.includes('支所')) return 1; 
