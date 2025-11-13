@@ -119,7 +119,6 @@ const FACILITY_DATA = [
     {"name": "天草市楠甫体育館", "address": "天草市有明町楠甫７５６番地"},
     {"name": "天草市大楠体育館", "address": "天草市有明町大浦５３３番地１"},
     {"name": "天草市須子体育館", "address": "天草市有明町須子１２２６番地２"},
-    {"name": "天草市有明体育館", "address": "天草市有明町赤崎３３８３番地"},
     {"name": "天草市赤崎体育館", "address": "天草市有明町赤崎１７６４番地"},
     {"name": "天草市浦和体育館", "address": "天草市有明町上津浦５５１番地"},
     {"name": "天草市島子体育館", "address": "天草市有明町大島子２６６９番地"},
@@ -223,51 +222,272 @@ const FACILITY_DATA = [
     {"name": "天草市立本渡南幼稚園", "address": "天草市川原町４番７号"},
     {"name": "天草市立本渡北幼稚園", "address": "天草市浜崎町４番９号"},
     {"name": "天草市立亀場幼稚園", "address": "天草市亀場町亀川１５３８番地１"},
-    {"name": "天草市立本渡南小学校", "address": "天草市川原町４番２１号"},
-    {"name": "天草市立本渡北小学校", "address": "天草市浜崎町３番５５号"},
-    {"name": "天草市立亀川小学校", "address": "天草市亀場町亀川１６２０番地"},
-    {"name": "天草市立本渡東小学校", "address": "天草市志柿町５０２９番地５"},
-    {"name": "天草市立楠浦小学校", "address": "天草市楠浦町２８０５番地"},
-    {"name": "天草市立本町小学校", "address": "天草市本町本８１５番地"},
-    {"name": "天草市立佐伊津小学校", "address": "天草市佐伊津町２３１２番地"},
-    {"name": "天草市立牛深小学校", "address": "天草市牛深町１９８５番地"},
-    {"name": "天草市立牛深東小学校", "address": "天草市久玉町１９６３番地"},
-    {"name": "天草市立有明小学校", "address": "天草市有明町赤崎３２９１番地"},
-    {"name": "天草市立御所浦小学校", "address": "天草市御所浦町御所浦３５２７番地５"},
-    {"name": "天草市立倉岳小学校", "address": "天草市倉岳町棚底２０９１番地"},
-    {"name": "天草市立栖本小学校", "address": "天草市栖本町馬場２５番地"},
-    {"name": "天草市立新和小学校", "address": "天草市新和町小宮地６２０番地"},
-    {"name": "天草市立五和小学校", "address": "天草市五和町御領９６０８番地１"},
-    {"name": "天草市立天草小学校", "address": "天草市天草町高浜南２７１４番地"},
-    {"name": "天草市立河浦小学校", "address": "天草市河浦町河浦４９３２番地２"},
-    {"name": "天草市立本渡中学校", "address": "天草市本渡町広瀬５番地１１０"},
-    {"name": "天草市立本渡東中学校", "address": "天草市志柿町５０３１番地"},
-    {"name": "天草市立稜南中学校", "address": "天草市亀場町亀川１４２５番地"},
-    {"name": "天草市立牛深中学校", "address": "天草市牛深町１２１１番地２５"},
-    {"name": "天草市立牛深東中学校", "address": "天草市久玉町２３６４番地"},
-    {"name": "天草市立有明中学校", "address": "天草市有明町赤崎３３８３番地"},
-    {"name": "天草市立御所浦中学校", "address": "天草市御所浦町御所浦３２１５番地２"},
-    {"name": "天草市立倉岳中学校", "address": "天草市倉岳町棚底２６９１番地"},
-    {"name": "天草市立栖本中学校", "address": "天草市栖本町湯船原６９０番地４"},
-    {"name": "天草市立新和中学校", "address": "天草市新和町小宮地１３０４番地"},
-    {"name": "天草市立五和中学校", "address": "天草市五和町御領９６０７番地２"},
-    {"name": "天草市立天草中学校", "address": "天草市天草町高浜南４８８番地１"},
-    {"name": "天草市立河浦中学校", "address": "天草市河浦町河浦３５番地２４"},
-    {"name": "中央生涯学習センター", "address": "天草市浄南町４番１５号"},
-    {"name": "生涯学習センター", "address": "天草市久玉町５７１６番地４"},
-    {"name": "天草市本町体育館", "address": "天草市本町新休２７番地７"},
-    {"name": "天草市佐伊津体育館", "address": "天草市佐伊津町５７９６番地"},
-    {"name": "天草市瀬戸体育館", "address": "天草市志柿町６３４８番地"},
-    {"name": "天草市金焼体育館", "address": "天草市下浦町９４７５番地"},
-    {"name": "天草市枦宇土体育館", "address": "天草市枦宇土町１９０１番地３"},
-    {"name": "天草市茂串体育館", "address": "天草市牛深町５99番地"},
-    {"name": "天草市天附体育館", "address": "天草市牛深町３２７５番地１１"},
-    {"name": "天草市魚貫体育館", "address": "天草市魚貫町１４４３番地"},
-    {"name": "天草市深海体育館", "address": "天草市深海町４４６２番地３"},
-    {"name": "天草市二浦体育館", "address": "天草市二浦町亀浦４４０３番地８"},
-    {"name": "天草市楠甫体育館", "address": "天草市有明町楠甫７５６番地"},
-    {"name": "天草市大楠体育館", "address": "天草市有明町大浦５３３番地１"},
-    {"name": "天草市須子体育館", "address": "天草市有明町須子１２２６番地２"},
-    {"name": "天草市有明体育館", "address": "天草市有明町赤崎３３８３番地"},
-    {"name": "天草市赤崎体育館", "address": "天草市有明町赤崎１７６４番地"},
-    {"name": "天草市浦和
+];
+
+// --- 旅費地点判定データ (地点目安.csvから、ロジック反映済) ---
+const TRAVEL_POINTS_DATA = [
+    { "town": "東町", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本渡or亀場"}] },
+    { "town": "浄南町", "ranges": [
+        {"start": 5.0, "end": 99999.0, "location": "本渡or亀場"}, 
+        {"start": 0.0, "end": 5.0, "location": "本渡"}
+    ]},
+    { "town": "太田町", "ranges": [
+        {"start": 19.0, "end": 21.0, "location": "本渡or亀場"}, 
+        {"start": 0.0, "end": 19.0, "location": "本渡"}, 
+        {"start": 21.0, "end": 99999.0, "location": "本渡"}
+    ]},
+    { "town": "東・浄南・太田町以外", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本渡"}] }, 
+    { "town": "旭町", "ranges": [{"start": 0.0, "end": 99999.0, "location": "佐伊津"}] },
+    { "town": "瀬戸町", "ranges": [{"start": 0.0, "end": 99999.0, "location": "亀場"}] },
+    { "town": "本渡町本渡", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本渡"}] },
+    { "town": "本渡町広瀬", "ranges": [
+        {"start": 1.0, "end": 1470.0, "location": "本渡"},
+        {"start": 1470.0, "end": 2080.0, "location": "佐伊津"}, 
+        {"start": 2080.0, "end": 99999.0, "location": "本渡"}
+    ]},
+    { "town": "本渡町本戸馬場", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本渡"}] },
+    { "town": "本渡町本泉", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本渡"}] },
+    { "town": "佐伊津町", "ranges": [{"start": 0.0, "end": 99999.0, "location": "佐伊津"}] },
+    { "town": "本町本", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本町"}] },
+    { "town": "本町新休", "ranges": [{"start": 0.0, "end": 99999.0, "location": "本町"}] },
+    { "town": "本町下河内", "ranges": [
+        {"start": 1.0, "end": 1200.0, "location": "本町"},
+        {"start": 1200.0, "end": 2000.0, "location": "城河原"}, 
+        {"start": 2000.0, "end": 99999.0, "location": "本町"}
+    ]},
+    { "town": "亀場町亀川", "ranges": [{"start": 0.0, "end": 99999.0, "location": "亀場"}] },
+    { "town": "亀場町食場", "ranges": [
+        {"start": 1.0, "end": 340.0, "location": "枦宇土"},
+        {"start": 340.0, "end": 700.0, "location": "亀場"},
+        {"start": 700.0, "end": 800.0, "location": "枦宇土"}, 
+        {"start": 800.0, "end": 900.0, "location": "亀場or枦宇土"},
+        {"start": 900.0, "end": 1200.0, "location": "亀場"},
+        {"start": 1200.0, "end": 99999.0, "location": "枦宇土"}
+    ]},
+    { "town": "枦宇土町", "ranges": [
+        {"start": 1.0, "end": 1030.0, "location": "枦宇土 OR 福連木"},
+        {"start": 1030.0, "end": 1130.0, "location": "枦宇土 OR 宮地岳"}, 
+        {"start": 1130.0, "end": 99999.0, "location": "枦宇土"}
+    ]},
+    { "town": "楠浦町", "ranges": [
+        {"start": 1.0, "end": 900.0, "location": "楠浦"},
+        {"start": 900.0, "end": 1200.0, "location": "亀場or楠浦"}, 
+        {"start": 1200.0, "end": 6400.0, "location": "楠浦"},
+        {"start": 6400.0, "end": 6800.0, "location": "宮地岳"},
+        {"start": 6800.0, "end": 10000.0, "location": "楠浦"},
+        {"start": 10000.0, "end": 99999.0, "location": "亀場"}
+    ]},
+    { "town": "宮地岳町", "ranges": [{"start": 0.0, "end": 99999.0, "location": "宮地岳"}] },
+    { "town": "志柿町", "ranges": [
+        {"start": 1.0, "end": 400.0, "location": "島子"},
+        {"start": 400.0, "end": 4700.0, "location": "志柿"}, 
+        {"start": 4700.0, "end": 5320.0, "location": "下浦"},
+        {"start": 5320.0, "end": 7000.0, "location": "亀場"},
+        {"start": 7000.0, "end": 99999.0, "location": "志柿"}
+    ]},
+    { "town": "下浦町", "ranges": [{"start": 0.0, "end": 99999.0, "location": "下浦"}] },
+    { "town": "牛深町", "ranges": [
+        {"start": 1.0, "end": 90.0, "location": "牛深 OR 魚貫"},
+        {"start": 90.0, "end": 300.0, "location": "牛深 OR 久玉"}, 
+        {"start": 300.0, "end": 1600.0, "location": "牛深 OR 魚貫"},
+        {"start": 1600.0, "end": 99999.0, "location": "牛深"}
+    ]},
+    { "town": "魚貫町", "ranges": [
+        {"start": 1.0, "end": 3400.0, "location": "魚貫"},
+        {"start": 3400.0, "end": 99999.0, "location": "魚貫崎"}
+    ]},
+    { "town": "二浦町早浦", "ranges": [{"start": 0.0, "end": 99999.0, "location": "亀浦"}] },
+    { "town": "二浦町亀浦", "ranges": [
+        {"start": 1.0, "end": 2200.0, "location": "亀浦"},
+        {"start": 2200.0, "end": 2600.0, "location": "向辺田"}, 
+        {"start": 2600.0, "end": 99999.0, "location": "亀浦"}
+    ]},
+    { "town": "久玉町", "ranges": [
+        {"start": 1.0, "end": 40.0, "location": "牛深 OR 山の浦"},
+        {"start": 40.0, "end": 1000.0, "location": "久玉 OR 山の浦"}, 
+        {"start": 1000.0, "end": 2000.0, "location": "久玉 OR 山の浦 OR 古江"},
+        {"start": 2000.0, "end": 5345.0, "location": "久玉 OR 山の浦"},
+        {"start": 5345.0, "end": 5705.0, "location": "久玉"},
+        {"start": 5705.0, "end": 5706.0, "location": "牛深"},
+        {"start": 5706.0, "end": 99999.0, "location": "久玉"}
+    ]},
+    { "town": "深海町", "ranges": [
+        {"start": 1.0, "end": 4800.0, "location": "深海"},
+        {"start": 4800.0, "end": 5000.0, "location": "深海 OR 山の浦"}, 
+        {"start": 5000.0, "end": 99999.0, "location": "深海"}
+    ]},
+    { "town": "有明町赤崎", "ranges": [
+        {"start": 1.0, "end": 2999.0, "location": "赤崎"},
+        {"start": 2999.0, "end": 3039.0, "location": "上津浦"},
+        {"start": 3039.0, "end": 99999.0, "location": "赤崎"}
+    ]},
+    { "town": "有明町須子", "ranges": [{"start": 0.0, "end": 99999.0, "location": "大浦"}] },
+    { "town": "有明町大浦", "ranges": [
+        {"start": 1.0, "end": 58.0, "location": "楠甫"},
+        {"start": 58.0, "end": 4000.0, "location": "大浦"}, 
+        {"start": 4000.0, "end": 99999.0, "location": "楠甫"}
+    ]},
+    { "town": "有明町楠甫", "ranges": [{"start": 0.0, "end": 99999.0, "location": "楠甫"}] },
+    { "town": "有明町上津浦", "ranges": [
+        {"start": 1.0, "end": 1880.0, "location": "上津浦"},
+        {"start": 1880.0, "end": 3200.0, "location": "赤崎"}, 
+        {"start": 3200.0, "end": 5000.0, "location": "上津浦"},
+        {"start": 5000.0, "end": 99999.0, "location": "河内"}
+    ]},
+    { "town": "有明町下津浦", "ranges": [
+        {"start": 1.0, "end": 1712.0, "location": "上津浦"},
+        {"start": 1712.0, "end": 1719.0, "location": "河内"},
+        {"start": 1719.0, "end": 1893.0, "location": "上津浦"},
+        {"start": 1893.0, "end": 1894.0, "location": "河内"},
+        {"start": 1894.0, "end": 3721.0, "location": "上津浦"},
+        {"start": 3721.0, "end": 3881.0, "location": "河内"},
+        {"start": 3881.0, "end": 4639.0, "location": "上津浦"},
+        {"start": 4639.0, "end": 4640.0, "location": "河内"},
+        {"start": 4640.0, "end": 99999.0, "location": "上津浦"}
+    ]},
+    { "town": "有明町大島子", "ranges": [{"start": 0.0, "end": 99999.0, "location": "島子"}] },
+    { "town": "有明町小島子", "ranges": [
+        {"start": 1.0, "end": 800.0, "location": "上津浦"},
+        {"start": 800.0, "end": 1320.0, "location": "島子"}, 
+        {"start": 1320.0, "end": 1326.0, "location": "上津浦"},
+        {"start": 1326.0, "end": 99999.0, "location": "島子"}
+    ]},
+    { "town": "御所浦町御所浦", "ranges": [
+        {"start": 1.0, "end": 1200.0, "location": "外平"},
+        {"start": 1200.0, "end": 3101.0, "location": "嵐口"},
+        {"start": 3101.0, "end": 4960.0, "location": "御所浦"}, 
+        {"start": 4960.0, "end": 5679.0, "location": "元浦"},
+        {"start": 5679.0, "end": 99999.0, "location": "大浦"}
+    ]},
+    { "town": "御所浦町牧島", "ranges": [
+        {"start": 1.0, "end": 1010.0, "location": "牧本"},
+        {"start": 1010.0, "end": 2000.0, "location": "長浦"}, 
+        {"start": 2000.0, "end": 99999.0, "location": "椛の木"}
+    ]},
+    { "town": "御所浦町横浦", "ranges": [
+        {"start": 1.0, "end": 600.0, "location": "(横浦港)船のみ"},
+        {"start": 600.0, "end": 99999.0, "location": "(与一ヶ浦港)船のみ"}
+    ]},
+    { "town": "倉岳町棚底", "ranges": [{"start": 0.0, "end": 99999.0, "location": "棚底"}] },
+    { "town": "倉岳町宮田", "ranges": [
+        {"start": 1.0, "end": 1533.0, "location": "宮田"},
+        {"start": 1533.0, "end": 1534.0, "location": "棚底"},
+        {"start": 1534.0, "end": 3260.0, "location": "宮田"}, 
+        {"start": 3260.0, "end": 3600.0, "location": "棚底 OR 宮田"},
+        {"start": 3600.0, "end": 3820.0, "location": "宮田"},
+        {"start": 3820.0, "end": 3880.0, "location": "棚底 OR 宮田"},
+        {"start": 3880.0, "end": 99999.0, "location": "宮田"}
+    ]},
+    { "town": "倉岳町浦", "ranges": [
+        {"start": 1.0, "end": 400.0, "location": "棚底"},
+        {"start": 400.0, "end": 99999.0, "location": "浦"}
+    ]},
+    { "town": "栖本町馬場", "ranges": [{"start": 0.0, "end": 99999.0, "location": "馬場"}] },
+    { "town": "栖本町打田", "ranges": [{"start": 0.0, "end": 99999.0, "location": "馬場"}] },
+    { "town": "栖本町湯船原", "ranges": [{"start": 0.0, "end": 99999.0, "location": "馬場"}] },
+    { "town": "栖本町古江", "ranges": [
+        {"start": 1.0, "end": 800.0, "location": "馬場"},
+        {"start": 800.0, "end": 1400.0, "location": "宮田"}, 
+        {"start": 1400.0, "end": 99999.0, "location": "馬場"}
+    ]},
+    { "town": "栖本町河内", "ranges": [{"start": 0.0, "end": 99999.0, "location": "河内"}] },
+    { "town": "新和町小宮地", "ranges": [
+        {"start": 1.0, "end": 8700.0, "location": "小宮地"},
+        {"start": 8700.0, "end": 9500.0, "location": "中田"}, 
+        {"start": 9500.0, "end": 99999.0, "location": "立"}
+    ]},
+    { "town": "新和町大宮地", "ranges": [
+        {"start": 1.0, "end": 2100.0, "location": "小宮地"},
+        {"start": 2100.0, "end": 4007.0, "location": "宮地岳"}, 
+        {"start": 4007.0, "end": 5000.0, "location": "小宮地"},
+        {"start": 5000.0, "end": 99999.0, "location": "宮地岳"}
+    ]},
+    { "town": "新和町大多尾", "ranges": [
+        {"start": 1.0, "end": 4560.0, "location": "大多尾"},
+        {"start": 4560.0, "end": 5000.0, "location": "小宮地"}, 
+        {"start": 5000.0, "end": 99999.0, "location": "大多尾"}
+    ]},
+    {"town": "新和町碇石", "ranges": [
+        {"start": 1.0, "end": 1030.0, "location": "小宮地"},
+        {"start": 1030.0, "end": 99999.0, "location": "宮地岳"}
+    ]},
+    {"town": "新和町中田", "ranges": [{"start": 0.0, "end": 99999.0, "location": "中田"}] },
+    { "town": "五和町御領", "ranges": [
+        {"start": 1.0, "end": 8720.0, "location": "御領"},
+        {"start": 8720.0, "end": 10800.0, "location": "鬼池"}, 
+        {"start": 10800.0, "end": 12134.0, "location": "御領"},
+        {"start": 12134.0, "end": 12135.0, "location": "鬼池"},
+        {"start": 12135.0, "end": 99999.0, "location": "御領"}
+    ]},
+    { "town": "五和町鬼池", "ranges": [{"start": 0.0, "end": 99999.0, "location": "鬼池"}] },
+    { "town": "五和町二江", "ranges": [{"start": 0.0, "end": 99999.0, "location": "二江"}] },
+    { "town": "五和町手野一丁目", "ranges": [
+        {"start": 1.0, "end": 410.0, "location": "城河原"},
+        {"start": 410.0, "end": 99999.0, "location": "手野"}
+    ]},
+    { "town": "五和町手野二丁目", "ranges": [
+        {"start": 1.0, "end": 1081.0, "location": "手野"},
+        {"start": 1081.0, "end": 1410.0, "location": "二江"}, 
+        {"start": 1410.0, "end": 99999.0, "location": "手野"}
+    ]},
+    { "town": "五和町城河原一丁目", "ranges": [
+        {"start": 0.0, "end": 4106.0, "location": "城河原"},
+        {"start": 4106.0, "end": 4107.0, "location": "手野"},
+        {"start": 4107.0, "end": 4182.0, "location": "城河原"}, 
+        {"start": 4182.0, "end": 4183.0, "location": "手野"},
+        {"start": 4183.0, "end": 99999.0, "location": "城河原"}
+    ]},
+    { "town": "五和町城河原二丁目", "ranges": [
+        {"start": 0.0, "end": 99999.0, "location": "城河原"}
+    ]},
+    { "town": "五和町城河原三丁目", "ranges": [
+        {"start": 0.0, "end": 99999.0, "location": "城河原"}
+    ]},
+    { "town": "天草町高浜北", "ranges": [{"start": 0.0, "end": 99999.0, "location": "高浜"}] },
+    { "town": "天草町高浜南", "ranges": [{"start": 0.0, "end": 99999.0, "location": "高浜"}] },
+    { "town": "天草町大江", "ranges": [{"start": 0.0, "end": 99999.0, "location": "大江"}] },
+    { "town": "天草町大江軍ヶ浦", "ranges": [{"start": 0.0, "end": 99999.0, "location": "大江"}] },
+    { "town": "天草町下田北", "ranges": [
+        {"start": 1.0, "end": 40.0, "location": "福連木"},
+        {"start": 40.0, "end": 99999.0, "location": "下田"}
+    ]},
+    { "town": "天草町下田南", "ranges": [
+        {"start": 1.0, "end": 400.0, "location": "高浜"},
+        {"start": 400.0, "end": 99999.0, "location": "下田"}
+    ]},
+    { "town": "天草町福連木", "ranges": [{"start": 0.0, "end": 99999.0, "location": "福連木"}] },
+    { "town": "天草町大江向", "ranges": [
+        {"start": 1.0, "end": 100.0, "location": "亀浦"},
+        {"start": 100.0, "end": 99999.0, "location": "向辺田"}
+    ]},
+    { "town": "河浦町河浦", "ranges": [
+        {"start": 1.0, "end": 1150.0, "location": "河浦 OR 板之河内"},
+        {"start": 1150.0, "end": 99999.0, "location": "河浦"}
+    ]},
+    { "town": "河浦町崎津", "ranges": [{"start": 0.0, "end": 99999.0, "location": "崎津"}] },
+    { "town": "河浦町今富", "ranges": [
+        {"start": 1.0, "end": 1930.0, "location": "崎津"},
+        {"start": 1930.0, "end": 2060.0, "location": "崎津 OR 亀浦"}, 
+        {"start": 2060.0, "end": 99999.0, "location": "崎津"}
+    ]},
+    { "town": "河浦町新合", "ranges": [
+        {"start": 1.0, "end": 530.0, "location": "新合"},
+        {"start": 530.0, "end": 640.0, "location": "新合 OR 河浦"}, 
+        {"start": 640.0, "end": 99999.0, "location": "新合"}
+    ]},
+    { "town": "河浦町立原", "ranges": [{"start": 0.0, "end": 99999.0, "location": "新合"}] },
+    { "town": "河浦町今田", "ranges": [{"start": 0.0, "end": 99999.0, "location": "河浦 OR 板之河内"}] },
+    { "town": "河浦町白木河内", "ranges": [
+        {"start": 1.0, "end": 90.0, "location": "古江"},
+        {"start": 90.0, "end": 1000.0, "location": "河浦"}, 
+        {"start": 1000.0, "end": 1851.0, "location": "新合"},
+        {"start": 1851.0, "end": 2168.0, "location": "河浦"}, 
+        {"start": 2168.0, "end": 99999.0, "location": "古江"}
+    ]},
+    { "town": "河浦町久留", "ranges": [{"start": 0.0, "end": 99999.0, "location": "古江"}] },
+    { "town": "河浦町路木", "ranges": [{"start": 0.0, "end": 99999.0, "location": "古江"}] },
+    { "town": "河浦町宮野河内", "ranges": [
+        {"start": 1.0, "end": 1150.0, "location": "宮野河内 OR 中田"},
+        {"start": 1150.0, "end": 99999.0, "location": "宮野河内"}
+    ]}
+];
