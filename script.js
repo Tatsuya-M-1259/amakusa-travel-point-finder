@@ -8,6 +8,7 @@
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
     
+    // "番地"、"番"、"号"などを取り除く
     let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
     
     // 全角数字を半角に変換
@@ -65,24 +66,35 @@ function parseAddress(fullAddress) {
  */
 function getTravelPoint(townName, numericHouseNumber) {
     const cleanInputTown = townName.replace(/町$/, '').trim();
-
+    
     // 1. データ内で町名を探す (柔軟な照合)
     let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+        // 優先度1: 完全一致
         if (entry.town === townName) return true;
+        // 優先度2: クリーン名でのマッチ
         if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
+        // 優先度3: データ名が入力名に含まれる場合 (例: データ'広瀬' in 入力'本渡町広瀬')
         if (townName.includes(entry.town) && entry.town.length > 2) return true;
+        // 優先度4: 入力名がデータ名に含まれる場合 (例: 入力'御所浦' in データ'御所浦町御所浦')
         if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
         return false;
     });
 
-    // 東町, 浄南町, 太田町の「その他」判定をカバー
-    if (!targetEntry && (cleanInputTown.includes('東町') || cleanInputTown.includes('浄南町') || cleanInputTown.includes('太田町'))) {
-        targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
+    // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
+    // ターゲットの東町, 浄南町, 太田町に該当しない、かつ特定の町名エントリが見つからない場合、本渡のキャッチオールを試みる
+    if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
+        // Town name not explicitly defined, check if it falls under the 'その他' rule
+        const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
+        if (catchAllEntry) {
+            // この場合、catch-allエントリを対象として使用
+            targetEntry = catchAllEntry;
+        }
     }
-
+    
     if (!targetEntry) {
         return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
     }
+
 
     // 2. 範囲を順番にチェック
     for (let i = 0; i < targetEntry.ranges.length; i++) {
@@ -176,7 +188,7 @@ function searchByFacility() {
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
 
-    const result = getTravelPoint(addressParts.townName, numericHouseNumber);
+    const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
     const isAmbiguous = result.includes("or") || result.includes("OR");
