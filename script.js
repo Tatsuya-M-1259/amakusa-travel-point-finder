@@ -30,7 +30,7 @@ function parseToNumeric(houseNumberStr) {
 }
 
 /**
- * 完全な住所文字列から町名と地番を抽出する (精度向上)
+ * 完全な住所文字列から町名と地番を抽出する
  * @param {string} fullAddress - 完全な住所文字列 (例: "天草市浄南町４番１５号")
  * @returns {{townName: string, houseNumber: string}}
  */
@@ -67,28 +67,19 @@ function parseAddress(fullAddress) {
  * @returns {string} - 旅費地点またはエラーメッセージ
  */
 function getTravelPoint(townName, numericHouseNumber) {
-    // 検索を容易にするため、入力された町名の「町」を削除したクリーンな名前を用意
     const cleanInputTown = townName.replace(/町$/, '').trim();
 
     // 1. データ内で町名を探す (柔軟な照合)
     let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
-        // 1. 完全一致 (例: 浄南町 vs 浄南町)
         if (entry.town === townName) return true;
-        
-        // 2. 「町」を削除した名前で完全一致 (例: 入力「浄南町」のクリーン名 vs データ「浄南町」)
         if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
-
-        // 3. データ名が入力名に含まれる場合 (例: 入力「本渡町広瀬」はデータ「広瀬」を含む)
         if (townName.includes(entry.town) && entry.town.length > 2) return true;
-
-        // 4. 入力名がデータ名に含まれる場合 (例: 入力「食場」はデータ「亀場町食場」に含まれる)
         if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
-
         return false;
     });
 
     // 東町, 浄南町, 太田町の「その他」判定をカバー
-    if (!targetEntry && (cleanInputTown === '東町' || cleanInputTown === '浄南町' || cleanInputTown === '太田町')) {
+    if (!targetEntry && (cleanInputTown.includes('東町') || cleanInputTown.includes('浄南町') || cleanInputTown.includes('太田町'))) {
         targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
     }
 
@@ -101,23 +92,25 @@ function getTravelPoint(townName, numericHouseNumber) {
         const range = targetEntry.ranges[i];
         const rangeStart = range.start;
         const rangeEnd = range.end;
+        
+        // 境界値の優先ルールをチェック
+        if (numericHouseNumber === rangeEnd) {
+             const nextRange = targetEntry.ranges[i + 1];
+             
+             // 境界値が次の範囲の開始地番でもある場合、次の範囲（優先される方）に処理を移す
+             if (nextRange && numericHouseNumber === nextRange.start) {
+                 continue; 
+             }
+        }
 
-        // 地番が範囲内に収まるか: 開始地番以上 (>=) かつ 終了地番未満 (<)
+        // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
         if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
             return range.location;
         }
 
-        // 境界値の厳密処理: 地番が rangeEnd と完全に一致する場合
+        // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
         if (numericHouseNumber === rangeEnd) {
-            const nextRange = targetEntry.ranges[i + 1];
-            
-            // 次の範囲が優先される場合 (次の範囲の開始地番でもある)
-            if (nextRange && numericHouseNumber === nextRange.start) {
-                continue; 
-            } else {
-                // 境界値が最後の範囲の end に一致、またはデータ不整合の場合、現在の範囲を返す
-                return range.location;
-            }
+             return range.location;
         }
     }
     
@@ -186,6 +179,7 @@ function searchByFacility() {
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
 
+    // 施設住所の解析結果をそのままgetTravelPointに渡す（厳格な判定ルールが適用される）
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
@@ -197,9 +191,7 @@ function searchByFacility() {
 // --- 初期化 ---
 
 function initializeApp() {
-    // 施設選択ドロップダウンにオプションを追加
     const select = document.getElementById('facility-select');
-    // 施設名をソートして追加
     FACILITY_DATA.sort((a, b) => a.name.localeCompare(b.name, 'ja')).forEach(facility => {
         const option = document.createElement('option');
         option.value = facility.name;
@@ -207,7 +199,6 @@ function initializeApp() {
         select.appendChild(option);
     });
 
-    // 検索モード切り替え
     const modeAddressBtn = document.getElementById('mode-address');
     const modeFacilityBtn = document.getElementById('mode-facility');
     const formAddress = document.getElementById('address-search-form');
