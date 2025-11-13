@@ -21,7 +21,8 @@
         <div id="address-search-form" class="search-form">
             <h2>住所（町名＋地番）から検索</h2>
             <input type="text" id="town-name" placeholder="例: 浄南町" required>
-            <input type="text" id="house-number" placeholder="例: 4番15号 または 4-15" required>
+            <input type="text" id="house-number" placeholder="例: 4-15 または 1470" required>
+            <p class="note input-warning">※ 地番はハイフン(-)や数字を必ず半角で入力してください。</p>
             <button onclick="searchByAddress()">地点を検索</button>
         </div>
 
