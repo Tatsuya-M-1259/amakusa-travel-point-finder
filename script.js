@@ -1,7 +1,7 @@
 // --- ユーティリティ関数 ---
 
 /**
- * 住所文字列から数値化された地番を抽出する (例: "4番15号" -> 4.15, "1470番" -> 1470.0)
+ * 住所文字列から数値化された地番を抽出する (変更なし)
  * @param {string} houseNumberStr - 地番文字列
  * @returns {number} - 数値化された地番
  */
@@ -30,7 +30,7 @@ function parseToNumeric(houseNumberStr) {
 }
 
 /**
- * 完全な住所文字列から町名と地番を抽出する
+ * 完全な住所文字列から町名と地番を抽出する (変更なし)
  * @param {string} fullAddress - 完全な住所文字列 (例: "天草市浄南町４番１５号")
  * @returns {{townName: string, houseNumber: string}}
  */
@@ -40,7 +40,6 @@ function parseAddress(fullAddress) {
     
     const address = parts[1].trim();
     
-    // 住所の末尾から数字、ハイフン、番、号などの地番部分を抽出し、残りを町名とする
     const match = address.match(/^(.+?)([0-9０-９]+.*)$/);
     
     if (match && match[1] && match[2]) {
@@ -49,7 +48,6 @@ function parseAddress(fullAddress) {
             houseNumber: match[2].trim() 
         };
     } else {
-        // 地番が見つからない、または例外的な形式の場合
         return { 
             townName: address.trim(), 
             houseNumber: "" 
@@ -62,18 +60,22 @@ function parseAddress(fullAddress) {
 
 /**
  * 町名と地番から旅費地点を特定する
- * @param {string} townName - 町名 (例: "浄南町")
- * @param {number} numericHouseNumber - 数値地番 (例: 4.15)
+ * @param {string} townName - 町名 (例: "御所浦町御所浦")
+ * @param {number} numericHouseNumber - 数値地番 (例: 2895.14)
  * @returns {string} - 旅費地点またはエラーメッセージ
  */
 function getTravelPoint(townName, numericHouseNumber) {
     const cleanInputTown = townName.replace(/町$/, '').trim();
 
-    // 1. データ内で町名を探す (柔軟な照合)
+    // 1. データ内で町名を探す (最長一致優先の柔軟な照合を実装)
     let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+        // 優先度1: 完全一致
         if (entry.town === townName) return true;
+        // 優先度2: クリーン名でのマッチ
         if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
+        // 優先度3: 部分一致 (データキーが入力に含まれる、例: データ'広瀬' in 入力'本渡町広瀬')
         if (townName.includes(entry.town) && entry.town.length > 2) return true;
+        // 優先度4: 部分一致 (入力がデータキーに含まれる、例: 入力'御所浦' in データ'御所浦町御所浦')
         if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
         return false;
     });
@@ -187,7 +189,8 @@ function searchByFacility() {
     displayResult(inputStr, result, isAmbiguous);
 }
 
-// --- 施設種別を定義する関数 ---
+// --- 初期化 (変更なし) ---
+
 function getFacilityType(name) {
     if (name.includes('市役所') || name.includes('支所')) return 1; 
     if (name.includes('公民館') || name.includes('コミュニティセンター') || name.includes('交流センター')) return 2; 
@@ -200,12 +203,9 @@ function getFacilityType(name) {
     return 9; 
 }
 
-// --- 初期化 ---
-
 function initializeApp() {
     const select = document.getElementById('facility-select');
     
-    // 施設リストを種別コードでソートし、同種別内は名前順でソート
     const sortedFacilities = FACILITY_DATA.sort((a, b) => {
         const typeA = getFacilityType(a.name);
         const typeB = getFacilityType(b.name);
@@ -223,7 +223,6 @@ function initializeApp() {
         select.appendChild(option);
     });
 
-    // 検索モード切り替え
     const modeAddressBtn = document.getElementById('mode-address');
     const modeFacilityBtn = document.getElementById('mode-facility');
     const formAddress = document.getElementById('address-search-form');
