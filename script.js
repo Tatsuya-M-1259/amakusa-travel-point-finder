@@ -46,25 +46,26 @@ function parseAddress(fullAddress) {
 }
 
 
-// --- 旅費地点検索ロジック (最重要修正箇所) ---
+// --- 旅費地点検索ロジック (町名照合を強化) ---
 
 /**
  * 町名と地番から旅費地点を特定する
  */
 function getTravelPoint(townName, numericHouseNumber) {
     try {
-        const cleanInputTown = townName.replace(/町$/, '').trim();
-
-        // 1. データ内で町名を探す (柔軟な照合を強化)
+        // 施設検索からの町名を正規化（例: '五和町御領' -> '五和町御領'）
+        const normalizedTownName = townName.trim();
+        
+        // 1. データ内で町名を探す (厳格な照合)
         let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
-            // 優先度1: 完全一致
-            if (entry.town === townName) return true;
-            // 優先度2: クリーン名でのマッチ
-            if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
-            // 優先度3: 部分一致 (データキーが入力に含まれる、例: データ'広瀬' in 入力'本渡町広瀬')
-            if (townName.includes(entry.town) && entry.town.length > 2) return true;
-            // 優先度4: 部分一致 (入力がデータキーに含まれる、例: 入力'御所浦' in データ'御所浦町御所浦')
-            if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
+            // 町名が完全に一致するか (例: '御所浦町御所浦' vs '御所浦町御所浦')
+            if (entry.town === normalizedTownName) return true;
+            
+            // 入力町名がデータキーの末尾と一致するか (例: '小宮地' vs '新和町小宮地')
+            if (entry.town.endsWith(normalizedTownName) && entry.town.includes('町')) return true;
+
+            // データキーが入力町名の末尾と一致するか (例: '東浜町' vs '東町') -> 今回は不使用、単純化
+            
             return false;
         });
 
@@ -72,7 +73,8 @@ function getTravelPoint(townName, numericHouseNumber) {
         if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
             const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
             if (catchAllEntry) {
-                targetEntry = catchAllEntry;
+                // 町名エントリが見つからなかった場合、catch-allエントリを使用
+                targetEntry = catchAllEntry; 
             }
         }
         
@@ -110,6 +112,7 @@ function getTravelPoint(townName, numericHouseNumber) {
         return "エラー: 入力された地番の範囲を特定できませんでした。";
         
     } catch (e) {
+        // 処理中に予期せぬエラーが発生した場合、エラーを報告
         console.error("検索処理中に致命的なエラーが発生しました:", e);
         return "エラー: 検索ロジック処理中に例外が発生しました。";
     }
@@ -177,6 +180,7 @@ function searchByFacility() {
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
 
+    // 施設住所から抽出した町名をそのまま渡すことで、getTravelPoint内で厳格な照合を試みる
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
@@ -185,7 +189,7 @@ function searchByFacility() {
     displayResult(inputStr, result, isAmbiguous);
 }
 
-// --- 初期化 (変更なし) ---
+// --- 初期化 ---
 
 function getFacilityType(name) {
     if (name.includes('市役所') || name.includes('支所')) return 1; 
