@@ -1,23 +1,11 @@
-// --- ユーティリティ関数 ---
-
-/**
- * 住所文字列から数値化された地番を抽出する
- * @param {string} houseNumberStr - 地番文字列
- * @returns {number} - 数値化された地番
- */
+// --- ユーティリティ関数 (変更なし) ---
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
     
-    // "番地"、"番"、"号"などを取り除く
     let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
-    
-    // 全角数字を半角に変換
     cleanStr = cleanStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-
-    // ハイフン(-) や "の" を小数点 "." に変換
     cleanStr = cleanStr.replace(/[-]/g, '.');
 
-    // 複数の "." が含まれる場合は最初の "." 以降を無視
     if (cleanStr.indexOf('.') !== cleanStr.lastIndexOf('.')) {
         cleanStr = cleanStr.substring(0, cleanStr.indexOf('.', cleanStr.indexOf('.') + 1));
     }
@@ -29,11 +17,6 @@ function parseToNumeric(houseNumberStr) {
     return parseFloat(cleanStr);
 }
 
-/**
- * 完全な住所文字列から町名と地番を抽出する
- * @param {string} fullAddress - 完全な住所文字列 (例: "天草市浄南町４番１５号")
- * @returns {{townName: string, houseNumber: string}}
- */
 function parseAddress(fullAddress) {
     const parts = fullAddress.split('天草市');
     if (parts.length < 2) return { townName: "", houseNumber: "" };
@@ -56,19 +39,12 @@ function parseAddress(fullAddress) {
 }
 
 
-// --- 旅費地点検索ロジック ---
+// --- 旅費地点検索ロジック (変更なし) ---
 
-/**
- * 町名と地番から旅費地点を特定する
- * @param {string} townName - 町名 (例: "御所浦町御所浦")
- * @param {number} numericHouseNumber - 数値地番 (例: 2895.14)
- * @returns {string} - 旅費地点またはエラーメッセージ
- */
 function getTravelPoint(townName, numericHouseNumber) {
     try {
         const cleanInputTown = townName.replace(/町$/, '').trim();
 
-        // 1. データ内で町名を探す (柔軟な照合)
         let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
             if (entry.town === townName) return true;
             if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
@@ -77,7 +53,6 @@ function getTravelPoint(townName, numericHouseNumber) {
             return false;
         });
 
-        // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
         if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
             const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
             if (catchAllEntry) {
@@ -89,28 +64,23 @@ function getTravelPoint(townName, numericHouseNumber) {
             return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
         }
 
-        // 2. 範囲を順番にチェック
         for (let i = 0; i < targetEntry.ranges.length; i++) {
             const range = targetEntry.ranges[i];
             const rangeStart = range.start;
             const rangeEnd = range.end;
             
-            // 境界値の優先ルールをチェック
             if (numericHouseNumber === rangeEnd) {
                  const nextRange = targetEntry.ranges[i + 1];
                  
-                 // 境界値が次の範囲の開始地番でもある場合、次の範囲（優先される方）に処理を移す
                  if (nextRange && numericHouseNumber === nextRange.start) {
                      continue; 
                  }
             }
 
-            // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
             if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
                 return range.location;
             }
 
-            // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
             if (numericHouseNumber === rangeEnd) {
                  return range.location;
             }
@@ -184,9 +154,10 @@ function searchByFacility() {
     const facility = FACILITY_DATA.find(f => f.name === facilityName);
     const addressParts = parseAddress(facility.address);
     
-    const numericHouseNum = parseToNumeric(addressParts.houseNumber);
-
-    const result = getTravelPoint(addressParts.townName, numericHouseNumber);
+    const numericHouseNum = parseToNumeric(addressParts.houseNumber); // ★修正点：変数名 numericHouseNum を使用
+    
+    // ★修正点：getTravelPointに渡す変数名を numericHouseNum に修正
+    const result = getTravelPoint(addressParts.townName, numericHouseNum); 
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
     const isAmbiguous = result.includes("or") || result.includes("OR");
@@ -194,7 +165,7 @@ function searchByFacility() {
     displayResult(inputStr, result, isAmbiguous);
 }
 
-// --- 初期化 ---
+// --- 初期化 (変更なし) ---
 
 function getFacilityType(name) {
     if (name.includes('市役所') || name.includes('支所')) return 1; 
