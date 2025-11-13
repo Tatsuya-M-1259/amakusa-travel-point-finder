@@ -1,4 +1,8 @@
-// --- ユーティリティ関数 (変更なし) ---
+// --- ユーティリティ関数 ---
+
+/**
+ * 住所文字列から数値化された地番を抽出する (変更なし)
+ */
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
     
@@ -17,6 +21,9 @@ function parseToNumeric(houseNumberStr) {
     return parseFloat(cleanStr);
 }
 
+/**
+ * 完全な住所文字列から町名と地番を抽出する (変更なし)
+ */
 function parseAddress(fullAddress) {
     const parts = fullAddress.split('天草市');
     if (parts.length < 2) return { townName: "", houseNumber: "" };
@@ -39,20 +46,29 @@ function parseAddress(fullAddress) {
 }
 
 
-// --- 旅費地点検索ロジック (変更なし) ---
+// --- 旅費地点検索ロジック (最重要修正箇所) ---
 
+/**
+ * 町名と地番から旅費地点を特定する
+ */
 function getTravelPoint(townName, numericHouseNumber) {
     try {
         const cleanInputTown = townName.replace(/町$/, '').trim();
 
+        // 1. データ内で町名を探す (柔軟な照合を強化)
         let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+            // 優先度1: 完全一致
             if (entry.town === townName) return true;
+            // 優先度2: クリーン名でのマッチ
             if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
+            // 優先度3: 部分一致 (データキーが入力に含まれる、例: データ'広瀬' in 入力'本渡町広瀬')
             if (townName.includes(entry.town) && entry.town.length > 2) return true;
+            // 優先度4: 部分一致 (入力がデータキーに含まれる、例: 入力'御所浦' in データ'御所浦町御所浦')
             if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
             return false;
         });
 
+        // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
         if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
             const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
             if (catchAllEntry) {
@@ -64,23 +80,28 @@ function getTravelPoint(townName, numericHouseNumber) {
             return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
         }
 
+        // 2. 範囲を順番にチェック (境界値判定のロジックは維持)
         for (let i = 0; i < targetEntry.ranges.length; i++) {
             const range = targetEntry.ranges[i];
             const rangeStart = range.start;
             const rangeEnd = range.end;
             
+            // 境界値の優先ルールをチェック
             if (numericHouseNumber === rangeEnd) {
                  const nextRange = targetEntry.ranges[i + 1];
                  
+                 // 境界値が次の範囲の開始地番でもある場合、次の範囲（優先される方）に処理を移す
                  if (nextRange && numericHouseNumber === nextRange.start) {
                      continue; 
                  }
             }
 
+            // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
             if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
                 return range.location;
             }
 
+            // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
             if (numericHouseNumber === rangeEnd) {
                  return range.location;
             }
@@ -95,7 +116,7 @@ function getTravelPoint(townName, numericHouseNumber) {
 }
 
 
-// --- UI操作関数 ---
+// --- UI操作関数 (変更なし) ---
 
 function displayResult(input, point, isAmbiguous) {
     const resultArea = document.getElementById('result-area');
@@ -154,10 +175,9 @@ function searchByFacility() {
     const facility = FACILITY_DATA.find(f => f.name === facilityName);
     const addressParts = parseAddress(facility.address);
     
-    const numericHouseNum = parseToNumeric(addressParts.houseNumber); // ★修正点：変数名 numericHouseNum を使用
-    
-    // ★修正点：getTravelPointに渡す変数名を numericHouseNum に修正
-    const result = getTravelPoint(addressParts.townName, numericHouseNum); 
+    const numericHouseNum = parseToNumeric(addressParts.houseNumber);
+
+    const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
     const isAmbiguous = result.includes("or") || result.includes("OR");
@@ -182,7 +202,7 @@ function getFacilityType(name) {
 function initializeApp() {
     const select = document.getElementById('facility-select');
     
-    // 1. 重複を排除したリストを作成 (施設名と住所の組み合わせが同一の場合)
+    // 1. 重複を排除したリストを作成 
     const uniqueFacilities = [];
     const seen = new Set();
 
@@ -200,9 +220,9 @@ function initializeApp() {
         const typeB = getFacilityType(b.name);
 
         if (typeA !== typeB) {
-            return typeA - typeB; // 種別でソート
+            return typeA - typeB; 
         }
-        return a.name.localeCompare(b.name, 'ja'); // 同種別内は名前でソート
+        return a.name.localeCompare(b.name, 'ja'); 
     });
 
     // 3. ソート済みリストをドロップリストに追加
