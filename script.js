@@ -11,7 +11,10 @@ function parseToNumeric(houseNumberStr) {
     // "番地"、"番"、"号"などを取り除く
     let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
     
-    // "-" や "の" を小数点 "." に変換 (例: 4-15 -> 4.15)
+    // 全角数字を半角に変換
+    cleanStr = cleanStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+
+    // ハイフン(-) や "の" を小数点 "." に変換 (例: 4-15 -> 4.15)
     cleanStr = cleanStr.replace(/[-]/g, '.');
 
     // 複数の "." が含まれる場合は最初の "." 以降を無視
@@ -19,7 +22,6 @@ function parseToNumeric(houseNumberStr) {
         cleanStr = cleanStr.substring(0, cleanStr.indexOf('.', cleanStr.indexOf('.') + 1));
     }
     
-    // 文字列末尾が"."で終わる場合（例: "5."）に対応
     if (cleanStr.endsWith('.')) {
         cleanStr = cleanStr.substring(0, cleanStr.length - 1);
     }
@@ -28,7 +30,7 @@ function parseToNumeric(houseNumberStr) {
 }
 
 /**
- * 住所文字列から町名と地番を抽出する (簡易版)
+ * 完全な住所文字列から町名と地番を抽出する (精度向上)
  * @param {string} fullAddress - 完全な住所文字列 (例: "天草市浄南町４番１５号")
  * @returns {{townName: string, houseNumber: string}}
  */
@@ -38,20 +40,18 @@ function parseAddress(fullAddress) {
     
     const address = parts[1].trim();
     
-    // 町名と地番を分けるための正規表現 (数字、ハイフン、番、号などが地番と仮定)
+    // 住所の末尾から数字、ハイフン、番、号などの地番部分を抽出し、残りを町名とする
     const match = address.match(/^(.+?)([0-9０-９]+.*)$/);
     
     if (match && match[1] && match[2]) {
-        // match[1]: 町名 (例: 浄南町)
-        // match[2]: 地番部分 (例: ４番１５号)
         return { 
             townName: match[1].trim(), 
             houseNumber: match[2].trim() 
         };
     } else {
-        // 地番が見つからない、または例外的な形式の場合 (例: 東町)
+        // 地番が見つからない、または例外的な形式の場合
         return { 
-            townName: address, 
+            townName: address.trim(), 
             houseNumber: "" 
         };
     }
@@ -67,22 +67,33 @@ function parseAddress(fullAddress) {
  * @returns {string} - 旅費地点またはエラーメッセージ
  */
 function getTravelPoint(townName, numericHouseNumber) {
-    // 1. データ内で町名を探す
-    // 完全一致 or TOWN_POINTS_DATAの町名が入力された町名に含まれるか (例: 入力「食場」-> データ「亀場町食場」)
-    let targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === townName);
+    // 検索を容易にするため、入力された町名の「町」を削除したクリーンな名前を用意
+    const cleanInputTown = townName.replace(/町$/, '').trim();
 
-    if (!targetEntry) {
-        // より広い範囲での部分一致を試みる (例: 入力「食場」に対して「亀場町食場」を見つける)
-        targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town.includes(townName) && entry.town.length > townName.length);
-    }
+    // 1. データ内で町名を探す (柔軟な照合)
+    let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+        // 1. 完全一致 (例: 浄南町 vs 浄南町)
+        if (entry.town === townName) return true;
+        
+        // 2. 「町」を削除した名前で完全一致 (例: 入力「浄南町」のクリーン名 vs データ「浄南町」)
+        if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
+
+        // 3. データ名が入力名に含まれる場合 (例: 入力「本渡町広瀬」はデータ「広瀬」を含む)
+        if (townName.includes(entry.town) && entry.town.length > 2) return true;
+
+        // 4. 入力名がデータ名に含まれる場合 (例: 入力「食場」はデータ「亀場町食場」に含まれる)
+        if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
+
+        return false;
+    });
 
     // 東町, 浄南町, 太田町の「その他」判定をカバー
-    if (!targetEntry && (townName.includes('東町') || townName.includes('浄南町') || townName.includes('太田町'))) {
+    if (!targetEntry && (cleanInputTown === '東町' || cleanInputTown === '浄南町' || cleanInputTown === '太田町')) {
         targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
     }
 
     if (!targetEntry) {
-        return "エラー: 入力された町名に該当する旅費データが見つかりません。";
+        return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
     }
 
     // 2. 範囲を順番にチェック
@@ -91,10 +102,7 @@ function getTravelPoint(townName, numericHouseNumber) {
         const rangeStart = range.start;
         const rangeEnd = range.end;
 
-        // 【改訂ロジック適用】
-        // (1) 開始地番以上 (>=)
-        // (2) 終了地番未満 (<) - 境界値は次の範囲に優先権があるため
-
+        // 地番が範囲内に収まるか: 開始地番以上 (>=) かつ 終了地番未満 (<)
         if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
             return range.location;
         }
@@ -103,18 +111,16 @@ function getTravelPoint(townName, numericHouseNumber) {
         if (numericHouseNumber === rangeEnd) {
             const nextRange = targetEntry.ranges[i + 1];
             
-            // 次の範囲があり、かつその開始地番と一致する場合（境界値優先ルール）
+            // 次の範囲が優先される場合 (次の範囲の開始地番でもある)
             if (nextRange && numericHouseNumber === nextRange.start) {
-                // 次の範囲が優先されるため、ここでは処理せず次のループへ（continue）
                 continue; 
             } else {
-                // 境界値が最後の範囲の end に一致するか、次の範囲が始まらない場合
+                // 境界値が最後の範囲の end に一致、またはデータ不整合の場合、現在の範囲を返す
                 return range.location;
             }
         }
     }
     
-    // 全ての範囲をチェックしても見つからない場合
     return "エラー: 入力された地番の範囲を特定できませんでした。";
 }
 
@@ -131,7 +137,7 @@ function displayResult(input, point, isAmbiguous) {
     pointDisplay.textContent = point;
     
     if (point.startsWith("エラー:")) {
-        resultArea.style.borderColor = '#dc3545'; // エラー色
+        resultArea.style.borderColor = '#dc3545';
         resultArea.style.backgroundColor = '#f8d7da';
         noteDisplay.textContent = "※ 地点特定に失敗しました。入力内容を確認するか、市役所にご確認ください。";
         return;
@@ -141,10 +147,10 @@ function displayResult(input, point, isAmbiguous) {
     
     if (isAmbiguous) {
         noteDisplay.textContent = "※「or」を含む結果は、旅費規定の運用に基づき、いずれかの地点を適用してください。システム側で単一に限定することはできません。";
-        resultArea.style.backgroundColor = '#fff3cd'; // 警告色
+        resultArea.style.backgroundColor = '#fff3cd';
     } else {
         noteDisplay.textContent = "※ 特定された地点が旅費算定の基準となります。";
-        resultArea.style.backgroundColor = '#e9f7ff'; // 通常色
+        resultArea.style.backgroundColor = '#e9f7ff';
     }
 }
 
@@ -179,6 +185,7 @@ function searchByFacility() {
     const addressParts = parseAddress(facility.address);
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
+
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
@@ -192,7 +199,8 @@ function searchByFacility() {
 function initializeApp() {
     // 施設選択ドロップダウンにオプションを追加
     const select = document.getElementById('facility-select');
-    FACILITY_DATA.forEach(facility => {
+    // 施設名をソートして追加
+    FACILITY_DATA.sort((a, b) => a.name.localeCompare(b.name, 'ja')).forEach(facility => {
         const option = document.createElement('option');
         option.value = facility.name;
         option.textContent = facility.name;
