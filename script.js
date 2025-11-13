@@ -1,20 +1,19 @@
 // --- ユーティリティ関数 ---
 
 /**
- * 住所文字列から数値化された地番を抽出する (変更なし)
+ * 住所文字列から数値化された地番を抽出する
  * @param {string} houseNumberStr - 地番文字列
  * @returns {number} - 数値化された地番
  */
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
     
-    // "番地"、"番"、"号"などを取り除く
     let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
     
     // 全角数字を半角に変換
     cleanStr = cleanStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
 
-    // ハイフン(-) や "の" を小数点 "." に変換 (例: 4-15 -> 4.15)
+    // ハイフン(-) や "の" を小数点 "." に変換
     cleanStr = cleanStr.replace(/[-]/g, '.');
 
     // 複数の "." が含まれる場合は最初の "." 以降を無視
@@ -30,7 +29,7 @@ function parseToNumeric(houseNumberStr) {
 }
 
 /**
- * 完全な住所文字列から町名と地番を抽出する (変更なし)
+ * 完全な住所文字列から町名と地番を抽出する
  * @param {string} fullAddress - 完全な住所文字列 (例: "天草市浄南町４番１５号")
  * @returns {{townName: string, houseNumber: string}}
  */
@@ -67,15 +66,11 @@ function parseAddress(fullAddress) {
 function getTravelPoint(townName, numericHouseNumber) {
     const cleanInputTown = townName.replace(/町$/, '').trim();
 
-    // 1. データ内で町名を探す (最長一致優先の柔軟な照合を実装)
+    // 1. データ内で町名を探す (柔軟な照合)
     let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
-        // 優先度1: 完全一致
         if (entry.town === townName) return true;
-        // 優先度2: クリーン名でのマッチ
         if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
-        // 優先度3: 部分一致 (データキーが入力に含まれる、例: データ'広瀬' in 入力'本渡町広瀬')
         if (townName.includes(entry.town) && entry.town.length > 2) return true;
-        // 優先度4: 部分一致 (入力がデータキーに含まれる、例: 入力'御所浦' in データ'御所浦町御所浦')
         if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
         return false;
     });
@@ -181,7 +176,7 @@ function searchByFacility() {
     
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
 
-    const result = getTravelPoint(addressParts.townName, numericHouseNum);
+    const result = getTravelPoint(addressParts.townName, numericHouseNumber);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
     const isAmbiguous = result.includes("or") || result.includes("OR");
@@ -189,7 +184,7 @@ function searchByFacility() {
     displayResult(inputStr, result, isAmbiguous);
 }
 
-// --- 初期化 (変更なし) ---
+// --- 初期化 ---
 
 function getFacilityType(name) {
     if (name.includes('市役所') || name.includes('支所')) return 1; 
