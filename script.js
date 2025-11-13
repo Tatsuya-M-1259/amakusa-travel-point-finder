@@ -19,6 +19,11 @@ function parseToNumeric(houseNumberStr) {
         cleanStr = cleanStr.substring(0, cleanStr.indexOf('.', cleanStr.indexOf('.') + 1));
     }
     
+    // 文字列末尾が"."で終わる場合（例: "5."）に対応
+    if (cleanStr.endsWith('.')) {
+        cleanStr = cleanStr.substring(0, cleanStr.length - 1);
+    }
+    
     return parseFloat(cleanStr);
 }
 
@@ -32,18 +37,24 @@ function parseAddress(fullAddress) {
     if (parts.length < 2) return { townName: "", houseNumber: "" };
     
     const address = parts[1].trim();
-    // 最後のスペースまたは数字の前の部分を町名、残りを地番とする (概算)
-    const match = address.match(/([^0-9]+)(\s*.*)/);
+    
+    // 町名と地番を分けるための正規表現 (数字、ハイフン、番、号などが地番と仮定)
+    const match = address.match(/^(.+?)([0-9０-９]+.*)$/);
     
     if (match && match[1] && match[2]) {
-        // 例: 浄南町 ４番１５号
+        // match[1]: 町名 (例: 浄南町)
+        // match[2]: 地番部分 (例: ４番１５号)
         return { 
             townName: match[1].trim(), 
             houseNumber: match[2].trim() 
         };
+    } else {
+        // 地番が見つからない、または例外的な形式の場合 (例: 東町)
+        return { 
+            townName: address, 
+            houseNumber: "" 
+        };
     }
-    // 失敗した場合
-    return { townName: address, houseNumber: "" };
 }
 
 
@@ -56,9 +67,20 @@ function parseAddress(fullAddress) {
  * @returns {string} - 旅費地点またはエラーメッセージ
  */
 function getTravelPoint(townName, numericHouseNumber) {
-    // 1. データ内で町名を探す (部分一致で検索)
-    const targetEntry = TRAVEL_POINTS_DATA.find(entry => townName.includes(entry.town) || entry.town.includes(townName));
-    
+    // 1. データ内で町名を探す
+    // 完全一致 or TOWN_POINTS_DATAの町名が入力された町名に含まれるか (例: 入力「食場」-> データ「亀場町食場」)
+    let targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === townName);
+
+    if (!targetEntry) {
+        // より広い範囲での部分一致を試みる (例: 入力「食場」に対して「亀場町食場」を見つける)
+        targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town.includes(townName) && entry.town.length > townName.length);
+    }
+
+    // 東町, 浄南町, 太田町の「その他」判定をカバー
+    if (!targetEntry && (townName.includes('東町') || townName.includes('浄南町') || townName.includes('太田町'))) {
+        targetEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
+    }
+
     if (!targetEntry) {
         return "エラー: 入力された町名に該当する旅費データが見つかりません。";
     }
@@ -79,18 +101,14 @@ function getTravelPoint(townName, numericHouseNumber) {
 
         // 境界値の厳密処理: 地番が rangeEnd と完全に一致する場合
         if (numericHouseNumber === rangeEnd) {
-            // 次の範囲があるか確認
             const nextRange = targetEntry.ranges[i + 1];
             
             // 次の範囲があり、かつその開始地番と一致する場合（境界値優先ルール）
             if (nextRange && numericHouseNumber === nextRange.start) {
-                // 次の範囲を優先する（次のループで捕捉される）
+                // 次の範囲が優先されるため、ここでは処理せず次のループへ（continue）
                 continue; 
-            } else if (!nextRange) {
-                // 最後の範囲で rangeEnd に一致した場合、その範囲に含める
-                 return range.location;
-            } else if (nextRange && numericHouseNumber !== nextRange.start) {
-                // データの整合性エラーだが、安全のため現在の範囲を返す
+            } else {
+                // 境界値が最後の範囲の end に一致するか、次の範囲が始まらない場合
                 return range.location;
             }
         }
@@ -111,18 +129,28 @@ function displayResult(input, point, isAmbiguous) {
 
     inputDisplay.textContent = `検索対象: ${input}`;
     pointDisplay.textContent = point;
-    resultArea.style.borderColor = isAmbiguous ? '#ffc107' : '#28a745'; // ORの場合は注意喚起
+    
+    if (point.startsWith("エラー:")) {
+        resultArea.style.borderColor = '#dc3545'; // エラー色
+        resultArea.style.backgroundColor = '#f8d7da';
+        noteDisplay.textContent = "※ 地点特定に失敗しました。入力内容を確認するか、市役所にご確認ください。";
+        return;
+    }
 
+    resultArea.style.borderColor = isAmbiguous ? '#ffc107' : '#28a745'; 
+    
     if (isAmbiguous) {
         noteDisplay.textContent = "※「or」を含む結果は、旅費規定の運用に基づき、いずれかの地点を適用してください。システム側で単一に限定することはできません。";
+        resultArea.style.backgroundColor = '#fff3cd'; // 警告色
     } else {
         noteDisplay.textContent = "※ 特定された地点が旅費算定の基準となります。";
+        resultArea.style.backgroundColor = '#e9f7ff'; // 通常色
     }
 }
 
 function searchByAddress() {
-    const town = document.getElementById('town-name').value;
-    const houseNumStr = document.getElementById('house-number').value;
+    const town = document.getElementById('town-name').value.trim();
+    const houseNumStr = document.getElementById('house-number').value.trim();
     
     if (!town || !houseNumStr) {
         alert("町名と地番を入力してください。");
@@ -133,7 +161,7 @@ function searchByAddress() {
     const result = getTravelPoint(town, numericHouseNum);
     
     const inputStr = `住所: ${town} ${houseNumStr}`;
-    const isAmbiguous = result.includes("or");
+    const isAmbiguous = result.includes("or") || result.includes("OR");
     
     displayResult(inputStr, result, isAmbiguous);
 }
@@ -154,7 +182,7 @@ function searchByFacility() {
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
-    const isAmbiguous = result.includes("or");
+    const isAmbiguous = result.includes("or") || result.includes("OR");
 
     displayResult(inputStr, result, isAmbiguous);
 }
