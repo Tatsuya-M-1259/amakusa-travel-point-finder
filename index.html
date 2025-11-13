@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天草市 旅費算定地点検索</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>天草市 旅費算定地点検索アプリ</h1>
+        <p>住所または公共施設名から旅費算定用の地点を特定します。</p>
+
+        <div class="search-mode-selector">
+            <button id="mode-address" class="active">住所検索</button>
+            <button id="mode-facility">施設名検索</button>
+        </div>
+        
+        <hr>
+
+        <div id="address-search-form" class="search-form">
+            <h2>住所（町名＋地番）から検索</h2>
+            <input type="text" id="town-name" placeholder="例: 浄南町" required>
+            <input type="text" id="house-number" placeholder="例: 4番15号 または 4-15" required>
+            <button onclick="searchByAddress()">地点を検索</button>
+        </div>
+
+        <div id="facility-search-form" class="search-form hidden">
+            <h2>施設名から検索</h2>
+            <select id="facility-select">
+                <option value="">施設を選択してください</option>
+            </select>
+            <button onclick="searchByFacility()">地点を検索</button>
+        </div>
+
+        <div id="result-area" class="result-box">
+            <h3>検索結果</h3>
+            <p id="search-input-display"></p>
+            <div id="travel-point-display"></div>
+            <p id="note-display" class="note"></p>
+        </div>
+    </div>
+    
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
