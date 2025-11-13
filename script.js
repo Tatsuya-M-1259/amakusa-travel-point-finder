@@ -78,7 +78,6 @@ function getTravelPoint(townName, numericHouseNumber) {
         });
 
         // 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
-        // ターゲットの東町, 浄南町, 太田町に該当しない場合、本渡のキャッチオールを適用
         if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
             const catchAllEntry = TRAVEL_POINTS_DATA.find(entry => entry.town === '東・浄南・太田町以外');
             if (catchAllEntry) {
