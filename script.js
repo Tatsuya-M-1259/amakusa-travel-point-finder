@@ -189,15 +189,15 @@ function searchByFacility() {
 
 // --- 施設種別を定義する関数 ---
 function getFacilityType(name) {
-    if (name.includes('市役所') || name.includes('支所')) return 1; // 行政施設 (支所、市役所)
-    if (name.includes('公民館') || name.includes('コミュニティセンター') || name.includes('交流センター')) return 2; // 地域交流施設 (公民館、コミセン)
-    if (name.includes('中学校')) return 3; // 中学校
-    if (name.includes('小学校')) return 4; // 小学校
-    if (name.includes('幼稚園')) return 5; // 幼稚園
-    if (name.includes('体育館') || name.includes('グラウンド') || name.includes('運動広場') || name.includes('テニスコート') || name.includes('相撲場')) return 6; // 体育施設 (体育館、グラウンドなど)
-    if (name.includes('図書館') || name.includes('博物館') || name.includes('資料館') || name.includes('アーカイブズ') || name.includes('生涯学習センター') || name.includes('市民センター')) return 7; // 文化・教育施設 (図書館、博物館など)
-    if (name.includes('給食センター')) return 8; // 給食施設
-    return 9; // その他 (病院、市場、B&Gなど)
+    if (name.includes('市役所') || name.includes('支所')) return 1; 
+    if (name.includes('公民館') || name.includes('コミュニティセンター') || name.includes('交流センター')) return 2; 
+    if (name.includes('中学校')) return 3; 
+    if (name.includes('小学校')) return 4; 
+    if (name.includes('幼稚園')) return 5; 
+    if (name.includes('体育館') || name.includes('グラウンド') || name.includes('運動広場') || name.includes('テニスコート') || name.includes('相撲場')) return 6; 
+    if (name.includes('図書館') || name.includes('博物館') || name.includes('資料館') || name.includes('アーカイブズ') || name.includes('生涯学習センター') || name.includes('市民センター')) return 7; 
+    if (name.includes('給食センター')) return 8; 
+    return 9; 
 }
 
 // --- 初期化 ---
@@ -211,9 +211,9 @@ function initializeApp() {
         const typeB = getFacilityType(b.name);
 
         if (typeA !== typeB) {
-            return typeA - typeB; // 種別でソート
+            return typeA - typeB; 
         }
-        return a.name.localeCompare(b.name, 'ja'); // 同種別内は名前でソート
+        return a.name.localeCompare(b.name, 'ja'); 
     });
 
     sortedFacilities.forEach(facility => {
