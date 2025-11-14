@@ -1,52 +1,4 @@
-// --- ユーティリティ関数 (変更なし) ---
-
-/**
- * 住所文字列から数値化された地番を抽出する
- */
-function parseToNumeric(houseNumberStr) {
-    if (!houseNumberStr) return 0;
-    
-    let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
-    cleanStr = cleanStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-    cleanStr = cleanStr.replace(/[-]/g, '.');
-
-    if (cleanStr.indexOf('.') !== cleanStr.lastIndexOf('.')) {
-        cleanStr = cleanStr.substring(0, cleanStr.indexOf('.', cleanStr.indexOf('.') + 1));
-    }
-    
-    if (cleanStr.endsWith('.')) {
-        cleanStr = cleanStr.substring(0, cleanStr.length - 1);
-    }
-    
-    return parseFloat(cleanStr);
-}
-
-/**
- * 完全な住所文字列から町名と地番を抽出する
- */
-function parseAddress(fullAddress) {
-    const parts = fullAddress.split('天草市');
-    if (parts.length < 2) return { townName: "", houseNumber: "" };
-    
-    const address = parts[1].trim();
-    
-    const match = address.match(/^(.+?)([0-9０-９]+.*)$/);
-    
-    if (match && match[1] && match[2]) {
-        return { 
-            townName: match[1].trim(), 
-            houseNumber: match[2].trim() 
-        };
-    } else {
-        return { 
-            townName: address.trim(), 
-            houseNumber: "" 
-        };
-    }
-}
-
-
-// --- 旅費地点検索ロジック (コアロジック) ---
+// --- 旅費地点検索ロジック (改善版) ---
 
 /**
  * 町名と地番から旅費地点を特定する
@@ -62,7 +14,8 @@ function getTravelPoint(townName, numericHouseNumber) {
             // 優先度2: クリーン名でのマッチ (例: 五和町御領 vs 御領)
             if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
             // 優先度3: 入力町名がデータキーに含まれる (最も柔軟な部分一致)
-            if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
+            // ただし、短すぎる町名（1文字）の部分一致は避け、より長い一致を優先
+            if (cleanInputTown.length > 2 && entry.town.includes(cleanInputTown)) return true;
             return false;
         });
 
@@ -78,7 +31,7 @@ function getTravelPoint(townName, numericHouseNumber) {
             return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
         }
 
-        // 3. 範囲を順番にチェック (地番境界値の厳格な適用)
+        // 3. 範囲を順番にチェック
         for (let i = 0; i < targetEntry.ranges.length; i++) {
             const range = targetEntry.ranges[i];
             const rangeStart = range.start;
@@ -99,7 +52,7 @@ function getTravelPoint(townName, numericHouseNumber) {
                 return range.location;
             }
 
-            // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
+            // 終端で完全に一致する場合
             if (numericHouseNumber === rangeEnd) {
                  return range.location;
             }
@@ -114,7 +67,7 @@ function getTravelPoint(townName, numericHouseNumber) {
 }
 
 
-// --- UI操作関数 (変更なし) ---
+// --- UI操作関数 ---
 
 function displayResult(input, point, isAmbiguous) {
     const resultArea = document.getElementById('result-area');
@@ -173,9 +126,15 @@ function searchByFacility() {
     const facility = FACILITY_DATA.find(f => f.name === facilityName);
     const addressParts = parseAddress(facility.address);
     
+    console.log(`施設: ${facilityName}`);
+    console.log(`住所: ${facility.address}`);
+    console.log(`パース結果 - 町名: ${addressParts.townName}, 地番: ${addressParts.houseNumber}`);
+    
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
+    console.log(`数値化地番: ${numericHouseNum}`);
 
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
+    console.log(`判定結果: ${result}`);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
     const isAmbiguous = result.includes("or") || result.includes("OR");
