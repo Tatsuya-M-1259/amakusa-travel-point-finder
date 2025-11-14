@@ -6,19 +6,27 @@
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
     
-    let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
-    cleanStr = cleanStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-    cleanStr = cleanStr.replace(/[-]/g, '.');
-
-    if (cleanStr.indexOf('.') !== cleanStr.lastIndexOf('.')) {
-        cleanStr = cleanStr.substring(0, cleanStr.indexOf('.', cleanStr.indexOf('.') + 1));
+    // 全角数字を半角に変換
+    let cleanStr = houseNumberStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+    
+    // 「番地」「番」「号」を統一的にピリオドに変換（順序重要）
+    cleanStr = cleanStr.replace(/番地/g, '.');
+    cleanStr = cleanStr.replace(/番/g, '.');
+    cleanStr = cleanStr.replace(/号/g, '.');
+    cleanStr = cleanStr.replace(/の/g, '.');
+    
+    // ハイフンもピリオドに変換
+    cleanStr = cleanStr.replace(/[-ー]/g, '.');
+    
+    // 複数のピリオドを整理（最初の2つまで残す）
+    const parts = cleanStr.split('.').filter(p => p.length > 0);
+    if (parts.length >= 2) {
+        cleanStr = parts[0] + '.' + parts[1];
+    } else if (parts.length === 1) {
+        cleanStr = parts[0];
     }
     
-    if (cleanStr.endsWith('.')) {
-        cleanStr = cleanStr.substring(0, cleanStr.length - 1);
-    }
-    
-    return parseFloat(cleanStr);
+    return parseFloat(cleanStr.trim());
 }
 
 /**
