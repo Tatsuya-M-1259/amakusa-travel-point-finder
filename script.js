@@ -1,4 +1,4 @@
-// --- 旅費地点検索ロジック (改善版) ---
+// --- 旅費地点検索ロジック (コアロジック) ---
 
 /**
  * 町名と地番から旅費地点を特定する
@@ -14,8 +14,7 @@ function getTravelPoint(townName, numericHouseNumber) {
             // 優先度2: クリーン名でのマッチ (例: 五和町御領 vs 御領)
             if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
             // 優先度3: 入力町名がデータキーに含まれる (最も柔軟な部分一致)
-            // ただし、短すぎる町名（1文字）の部分一致は避け、より長い一致を優先
-            if (cleanInputTown.length > 2 && entry.town.includes(cleanInputTown)) return true;
+            if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
             return false;
         });
 
@@ -31,7 +30,7 @@ function getTravelPoint(townName, numericHouseNumber) {
             return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
         }
 
-        // 3. 範囲を順番にチェック
+        // 3. 範囲を順番にチェック (地番境界値の厳格な適用)
         for (let i = 0; i < targetEntry.ranges.length; i++) {
             const range = targetEntry.ranges[i];
             const rangeStart = range.start;
@@ -52,7 +51,7 @@ function getTravelPoint(townName, numericHouseNumber) {
                 return range.location;
             }
 
-            // 終端で完全に一致する場合
+            // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
             if (numericHouseNumber === rangeEnd) {
                  return range.location;
             }
@@ -211,4 +210,4 @@ function initializeApp() {
     });
 }
 
-window.onload = initializeApp;
+window.onload = initializeAp
