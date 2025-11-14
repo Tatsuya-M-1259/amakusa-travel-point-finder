@@ -80,29 +80,15 @@ function getTravelPoint(townName, numericHouseNumber) {
         }
 
         // 3. 範囲を順番にチェック (地番境界値の厳格な適用)
+        // data.jsの定義: start以上、end未満 (start <= x < end)
         for (let i = 0; i < targetEntry.ranges.length; i++) {
             const range = targetEntry.ranges[i];
             const rangeStart = range.start;
             const rangeEnd = range.end;
             
-            // 境界値の優先ルールをチェック
-            if (numericHouseNumber === rangeEnd) {
-                 const nextRange = targetEntry.ranges[i + 1];
-                 
-                 // 境界値が次の範囲の開始地番でもある場合、次の範囲（優先される方）に処理を移す
-                 if (nextRange && numericHouseNumber === nextRange.start) {
-                     continue; 
-                 }
-            }
-
             // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
             if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
                 return range.location;
-            }
-
-            // 終端で完全に一致する場合 (優先ルールで次の範囲に進まなかった境界値の処理)
-            if (numericHouseNumber === rangeEnd) {
-                 return range.location;
             }
         }
         
