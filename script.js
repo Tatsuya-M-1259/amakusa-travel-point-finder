@@ -1,3 +1,52 @@
+// --- ユーティリティ関数 ---
+
+/**
+ * 住所文字列から数値化された地番を抽出する
+ */
+function parseToNumeric(houseNumberStr) {
+    if (!houseNumberStr) return 0;
+    
+    let cleanStr = houseNumberStr.replace(/番地|番|号|の/g, '').trim();
+    cleanStr = cleanStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+    cleanStr = cleanStr.replace(/[-]/g, '.');
+
+    if (cleanStr.indexOf('.') !== cleanStr.lastIndexOf('.')) {
+        cleanStr = cleanStr.substring(0, cleanStr.indexOf('.', cleanStr.indexOf('.') + 1));
+    }
+    
+    if (cleanStr.endsWith('.')) {
+        cleanStr = cleanStr.substring(0, cleanStr.length - 1);
+    }
+    
+    return parseFloat(cleanStr);
+}
+
+/**
+ * 完全な住所文字列から町名と地番を抽出する
+ */
+function parseAddress(fullAddress) {
+    const parts = fullAddress.split('天草市');
+    if (parts.length < 2) return { townName: "", houseNumber: "" };
+    
+    const address = parts[1].trim();
+    
+    // 数字（半角/全角）が最初に出現する位置を探す
+    const match = address.match(/^(.+?)([0-9０-９]+.*)$/);
+    
+    if (match && match[1] && match[2]) {
+        return { 
+            townName: match[1].trim(), 
+            houseNumber: match[2].trim() 
+        };
+    } else {
+        return { 
+            townName: address.trim(), 
+            houseNumber: "" 
+        };
+    }
+}
+
+
 // --- 旅費地点検索ロジック (コアロジック) ---
 
 /**
