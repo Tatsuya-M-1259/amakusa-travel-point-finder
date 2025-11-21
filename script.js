@@ -2,6 +2,7 @@
 
 /**
  * 住所文字列から数値化された地番を抽出する
+ * 修正点: 地番の第1・第2要素のみを考慮し、「整数.小数」形式で数値化するロジックに関するコメントを追加
  */
 function parseToNumeric(houseNumberStr) {
     if (!houseNumberStr) return 0;
@@ -9,7 +10,7 @@ function parseToNumeric(houseNumberStr) {
     // 全角数字を半角に変換
     let cleanStr = houseNumberStr.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
     
-    // 「番地」「番」「号」を統一的にピリオドに変換（順序重要）
+    // 「番地」「番」「号」「の」を統一的にピリオドに変換
     cleanStr = cleanStr.replace(/番地/g, '.');
     cleanStr = cleanStr.replace(/番/g, '.');
     cleanStr = cleanStr.replace(/号/g, '.');
@@ -18,7 +19,7 @@ function parseToNumeric(houseNumberStr) {
     // ハイフンもピリオドに変換
     cleanStr = cleanStr.replace(/[-ー]/g, '.');
     
-    // 複数のピリオドを整理（最初の2つまで残す）
+    // 複数のピリオドを整理（最初の2つまで残す: 例 1-2-3 → 1.2）
     const parts = cleanStr.split('.').filter(p => p.length > 0);
     if (parts.length >= 2) {
         cleanStr = parts[0] + '.' + parts[1];
@@ -26,6 +27,7 @@ function parseToNumeric(houseNumberStr) {
         cleanStr = parts[0];
     }
     
+    // 修正点: 地番の第1・第2要素のみを考慮し、それを「整数.小数」形式で比較する（旅費規定の慣習による）
     return parseFloat(cleanStr.trim());
 }
 
@@ -59,21 +61,27 @@ function parseAddress(fullAddress) {
 
 /**
  * 町名と地番から旅費地点を特定する
+ * 修正点: 戻り値にマッチした町名と範囲を含めることで、結果の透明性を向上
+ * @returns {{point: string, matchedTown: string, rangeStr: string}}
  */
 function getTravelPoint(townName, numericHouseNumber) {
     try {
         const cleanInputTown = townName.replace(/町$/, '').trim();
+        let targetEntry = null;
 
         // 1. データ内で町名を探す (厳格な町名照合ロジック)
-        let targetEntry = TRAVEL_POINTS_DATA.find(entry => {
+        const foundEntry = TRAVEL_POINTS_DATA.find(entry => {
             // 優先度1: 完全一致
             if (entry.town === townName) return true;
-            // 優先度2: クリーン名でのマッチ (例: 五和町御領 vs 御領)
+            // 優先度2: クリーン名でのマッチ (例: 御領 vs 五和町御領)
             if (entry.town.replace(/町$/, '').trim() === cleanInputTown) return true;
-            // 優先度3: 入力町名がデータキーに含まれる (最も柔軟な部分一致)
-            if (entry.town.includes(cleanInputTown) && cleanInputTown.length > 1) return true;
+            // 修正点1: 柔軟すぎる部分一致のロジック（優先度3）を削除
             return false;
         });
+
+        if (foundEntry) {
+            targetEntry = foundEntry;
+        }
 
         // 2. 東浜町などの「東・浄南・太田町以外は本渡」ルールを適用
         if (!targetEntry && !['東町', '浄南町', '太田町'].some(ex => townName.includes(ex))) {
@@ -84,7 +92,11 @@ function getTravelPoint(townName, numericHouseNumber) {
         }
         
         if (!targetEntry) {
-            return `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`;
+            return {
+                point: `エラー: 入力された町名「${townName}」に該当する旅費データが見つかりません。`,
+                matchedTown: "",
+                rangeStr: ""
+            };
         }
 
         // 3. 範囲を順番にチェック (地番境界値の厳格な適用)
@@ -96,45 +108,81 @@ function getTravelPoint(townName, numericHouseNumber) {
             
             // 基本の範囲判定: 開始地番以上 (>=) かつ 終了地番未満 (<)
             if (numericHouseNumber >= rangeStart && numericHouseNumber < rangeEnd) {
-                return range.location;
+                const matchedTown = targetEntry.town;
+                const rangeStr = `${rangeStart} 以上 ${rangeEnd} 未満`;
+                return {
+                    point: range.location,
+                    matchedTown: matchedTown,
+                    rangeStr: rangeStr
+                };
             }
         }
         
-        return "エラー: 入力された地番の範囲を特定できませんでした。";
+        return {
+            point: "エラー: 入力された地番の範囲を特定できませんでした。",
+            matchedTown: targetEntry.town,
+            rangeStr: ""
+        };
         
     } catch (e) {
         console.error("検索処理中に致命的なエラーが発生しました:", e);
-        return "エラー: 検索ロジック処理中に例外が発生しました。";
+        return {
+            point: "エラー: 検索ロジック処理中に例外が発生しました。",
+            matchedTown: "",
+            rangeStr: ""
+        };
     }
 }
 
 
 // --- UI操作関数 ---
 
-function displayResult(input, point, isAmbiguous) {
+/**
+ * 検索結果を画面に表示する
+ * 修正点: 成功時の文字色を青に変更。適用データと範囲を表示。
+ */
+function displayResult(input, resultObj, isFacilitySearch) {
     const resultArea = document.getElementById('result-area');
     const inputDisplay = document.getElementById('search-input-display');
     const pointDisplay = document.getElementById('travel-point-display');
     const noteDisplay = document.getElementById('note-display');
 
-    inputDisplay.textContent = `検索対象: ${input}`;
+    const point = resultObj.point;
+    const matchedTown = resultObj.matchedTown;
+    const rangeStr = resultObj.rangeStr;
+
+    // 修正点5: 適用データと範囲を表示して透明性を向上
+    inputDisplay.innerHTML = `
+        検索対象: ${input}
+        ${!isFacilitySearch && matchedTown ? `<br>適用データ: <strong>天草市${matchedTown}</strong>` : ''}
+        ${rangeStr ? `<br>適用範囲: ${rangeStr}` : ''}
+    `;
+
     pointDisplay.textContent = point;
     
+    // 修正点3: 結果表示のカラーリングを動的に変更
+    pointDisplay.classList.remove('error-point-color', 'success-point-color');
+
     if (point.startsWith("エラー:")) {
         resultArea.style.borderColor = '#dc3545';
         resultArea.style.backgroundColor = '#f8d7da';
         noteDisplay.textContent = "※ 地点特定に失敗しました。入力内容を確認するか、市役所にご確認ください。";
+        pointDisplay.classList.add('error-point-color');
         return;
     }
+
+    const isAmbiguous = point.includes("or") || point.includes("OR");
 
     resultArea.style.borderColor = isAmbiguous ? '#ffc107' : '#28a745'; 
     
     if (isAmbiguous) {
         noteDisplay.textContent = "※「or」を含む結果は、旅費規定の運用に基づき、いずれかの地点を適用してください。システム側で単一に限定することはできません。";
         resultArea.style.backgroundColor = '#fff3cd';
+        pointDisplay.classList.add('success-point-color'); 
     } else {
         noteDisplay.textContent = "※ 特定された地点が旅費算定の基準となります。";
         resultArea.style.backgroundColor = '#e9f7ff';
+        pointDisplay.classList.add('success-point-color');
     }
 }
 
@@ -151,9 +199,8 @@ function searchByAddress() {
     const result = getTravelPoint(town, numericHouseNum);
     
     const inputStr = `住所: ${town} ${houseNumStr}`;
-    const isAmbiguous = result.includes("or") || result.includes("OR");
     
-    displayResult(inputStr, result, isAmbiguous);
+    displayResult(inputStr, result, false);
 }
 
 function searchByFacility() {
@@ -168,20 +215,14 @@ function searchByFacility() {
     const facility = FACILITY_DATA.find(f => f.name === facilityName);
     const addressParts = parseAddress(facility.address);
     
-    console.log(`施設: ${facilityName}`);
-    console.log(`住所: ${facility.address}`);
-    console.log(`パース結果 - 町名: ${addressParts.townName}, 地番: ${addressParts.houseNumber}`);
-    
     const numericHouseNum = parseToNumeric(addressParts.houseNumber);
-    console.log(`数値化地番: ${numericHouseNum}`);
 
     const result = getTravelPoint(addressParts.townName, numericHouseNum);
-    console.log(`判定結果: ${result}`);
     
     const inputStr = `施設名: ${facilityName} (${facility.address})`;
-    const isAmbiguous = result.includes("or") || result.includes("OR");
-
-    displayResult(inputStr, result, isAmbiguous);
+    
+    // 施設検索時は適用データが住所から明確なため、住所検索時とは異なる表示ロジックを適用
+    displayResult(inputStr, result, true); 
 }
 
 // --- 初期化 ---
@@ -243,6 +284,9 @@ function initializeApp() {
         modeFacilityBtn.classList.remove('active');
         formAddress.classList.remove('hidden');
         formFacility.classList.add('hidden');
+        
+        // 修正点4: モード切り替え時のリセット処理（施設検索→住所検索）
+        document.getElementById('facility-select').value = "";
     });
 
     modeFacilityBtn.addEventListener('click', () => {
@@ -250,6 +294,10 @@ function initializeApp() {
         modeAddressBtn.classList.remove('active');
         formFacility.classList.remove('hidden');
         formAddress.classList.add('hidden');
+        
+        // 修正点4: モード切り替え時のリセット処理（住所検索→施設検索）
+        document.getElementById('town-name').value = "";
+        document.getElementById('house-number').value = "";
     });
 }
 
