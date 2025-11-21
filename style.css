@@ -57,9 +57,16 @@ h1 { color: #007bff; text-align: center; }
 #travel-point-display {
     font-size: 24px;
     font-weight: bold;
-    color: #d9534f;
+    /* 修正点: 固定色を削除し、スクリプトで動的にクラスを設定する */
     text-align: center;
     margin: 10px 0;
+}
+/* 修正点: 成功時とエラー時の色を追加 */
+.success-point-color {
+    color: #007bff; 
+}
+.error-point-color {
+    color: #d9534f;
 }
 .note {
     font-size: 12px;
