@@ -151,10 +151,10 @@ function displayResult(input, resultObj, isFacilitySearch) {
     const matchedTown = resultObj.matchedTown;
     const rangeStr = resultObj.rangeStr;
 
-    // 修正点5: 適用データと範囲を表示して透明性を向上
+    // 修正点: 施設検索時でもmatchedTownを表示するように修正 (透明性向上のため)
     inputDisplay.innerHTML = `
         検索対象: ${input}
-        ${!isFacilitySearch && matchedTown ? `<br>適用データ: <strong>天草市${matchedTown}</strong>` : ''}
+        ${matchedTown ? `<br>適用データ: <strong>天草市${matchedTown}</strong>` : ''}
         ${rangeStr ? `<br>適用範囲: ${rangeStr}` : ''}
     `;
 
